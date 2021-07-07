@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="boardMapper">
+
+	<resultMap id="board" type="Board">
+		<id column="board_no" property="boardNo"/>
+		<result column="board_title" property="boardTitle"/>
+		<result column="board_writer" property="boardWriter"/>
+		<result column="board_content" property="boardContent"/>
+		<result column="origin_name" property="originName"/>
+		<result column="change_name" property="changeName"/>
+		<result column="count" property="count"/>
+		<result column="create_date" property="createDate"/>
+		<result column="status" property="status"/>
+	</resultMap>
+	
+	<resultMap id="reply" type="Reply">
+		<id column="reply_no" property="replyNo"/>
+		<result column="reply_writer" property="replyWriter"/>
+		<result column="reply_content" property="replyContent"/>
+		<result column="create_date" property="createDate"/>
+	</resultMap>
+  
+	<select id="selectListCount" resultType="_int">
+		select
+		       count(*)
+		  from board
+		 where status = 'Y'
+	</select>
+	
+	<select id="selectList" resultMap="board">
+		select 
+		       board_no
+		     , board_title
+		     , board_writer
+		     , origin_name
+		     , count
+		     , to_char(create_date, 'YYYY-MM-DD') create_date
+		  from board
+		 where status = 'Y'
+		 order
+		    by board_no desc 
+	</select>
+	
+	<select id="insertBoard" parameterType="Board">
+		insert
+		  into board
+		  (
+		    board_no
+		  , board_title
+		  , board_writer
+		  , board_content
+		  , origin_name
+		  , change_name
+		  ) 
+		  values
+		  (
+		  	seq_bno.nextval
+		  , #{boardTitle}
+		  , #{boardWriter}
+		  , #{boardContent}
+		  , #{originName}
+		  , #{changeName}
+		  )
+	</select>
+	
+	<update id="increaseCount" parameterType="_int">
+		update
+		       board
+		   set count = count+1
+		 where board_no = #{boardNo}
+		   and status = 'Y'
+	</update>
+    
+    <select id="selectBoard" resultMap="board" parameterType="_int">
+		select
+		       board_no
+		     , board_title
+		     , board_writer
+		     , board_content
+		     , origin_name
+		     , change_name
+		     , to_char(create_date, 'YYYY-MM-DD') create_date
+		  from board
+		 where board_no = #{boardNo}
+    </select>
+    
+    <update id="deleteBoard">
+    	update
+    	       board
+    	   set status = 'N'
+    	 where board_no = #{boardNo}
+    </update>
+    
+    <update id="updateBoard" parameterType="Board">
+    	update
+    	       board
+    	   set board_title = #{boardTitle}
+    	     , board_content = #{boardContent}
+    	     , origin_name = #{originName}
+    	     , change_name = #{changeName}
+    	 where board_no = #{boardNo}
+    </update>
+    
+    <select id="selectReplyList" resultMap="reply" parameterType="_int">
+    	select
+    	       reply_no
+    	     , reply_content
+    	     , reply_writer
+    	     , to_char(create_date, 'YYYY-MM-DD') create_date
+    	  from reply
+    	 where status = 'Y'
+    	   and ref_bno = #{boardNo}
+    	 order 
+    	    by reply_no desc
+    </select>
+    
+    <insert id="insertReply" parameterType="Reply">
+    	insert
+    	  into reply
+    	  (
+    	    reply_no
+    	  , reply_content
+    	  , ref_bno
+    	  , reply_writer
+    	  )
+    	  values
+    	  (
+    	    seq_rno.nextval
+    	  , #{replyContent}
+    	  , #{refBoardNo}
+    	  , #{replyWriter}
+    	  )
+    </insert>
+  
+</mapper>
